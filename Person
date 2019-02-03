@@ -1,0 +1,20 @@
+package tournament;
+
+import java.util.HashSet;
+
+// Person class is used to create players within our tournament
+public class Person {
+	String name;
+	int wins;
+	
+	public Person(String name) {
+		this.name = name;
+	}
+	
+	boolean compareTo(Person person2) {
+		if(name.equals(person2.name) && wins == person2.wins)
+			return true;
+		
+		else return false;
+	}
+}
