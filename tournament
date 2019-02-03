@@ -1,0 +1,351 @@
+package tournament;
+
+import java.util.Random;
+
+// This class simulates a tournament with a supplied amount of people
+public class Tournament {
+
+	// I chose an array because it was the most convenient for my sorting
+	// algorithm
+	Person[] playerList;
+
+	// The random is for the "game"
+	private Random r = new Random();
+
+	// General constructor to create our tournament
+	public Tournament(String[] arr, int size) {
+		if(arr != null && size > 0) {
+			playerList = new Person[arr.length];
+			makePeople(arr);
+		}
+		else playerList = null;
+	}
+
+	// Prints our current standings
+	public String toString() {
+		String val = "";
+		Person player;
+		int size = playerList.length;
+
+		for(int i = 0; i < size;i++) {
+			player = playerList[i];
+			val += player.name + " " + player.wins 
+					+ " ";
+		}
+
+		System.out.println(val);
+
+		return val;
+	}
+
+	// This fills up our array of players to keep track of
+	void makePeople(String[] list) {
+		if(list != null) {
+			int size = list.length;
+
+			for(int i = 0; i < size;i++) {
+				Person person = new Person(list[i]);
+				playerList[i] = person;
+			}
+		}
+	}
+
+	// Simulates 2 players playing the game. Both are given a number from 0 to
+	// 999, and the higher number wins.
+	private void battle(Person person1,Person person2) {
+		if(person1 != null && person2 != null) {
+			int x = 0,y = 0;
+
+			if(person1 != person2 && person1.compareTo(person2) == false) {
+
+				x = r.nextInt(1000);
+
+				y = r.nextInt(1000);
+
+				// This will handle if player 1 and player 2 tie (get the same 
+				// number), this will only result in one victory being awarded
+				if(x == y) {
+					battle(person1,person2);
+					return;
+				}
+				else if (x > y) {
+					person1.wins++;
+				}
+				else {
+					person2.wins++;
+				}	
+			}
+		}
+	}
+
+	// Tie breaker function, battles again but in this case only position will
+	// matter, wins don't change.
+	private int tiebreaker(Person person1, Person person2) {
+		if(person1 != null && person2 != null) {
+			int x = 0,y = 0;
+
+			if(person1 != person2 && person1.compareTo(person2) == false) {
+
+				x = r.nextInt(100);
+
+				y = r.nextInt(100);
+
+				// This will handle if player 1 and player 2 tie (get the same
+				// number), this will only result in one victory being awarded
+				if(x == y) {
+					return tiebreaker(person1,person2);
+				}
+				else if (x > y) {
+					return 1;
+				}
+				else {
+					return -1;
+				}	
+			}
+		}
+		return 0;
+	}
+
+	void runTournament(Person[] players) {
+		if(players != null) {
+			int i = 0,j,size = players.length, maxwins = 0;
+
+			Person player1,player2,winner = null;
+
+			/*  Now for the functionality, this will essentially go down the list of
+			 *  players, beginning from the first player pitting him against the 2nd
+			 *  to the nth. Then we move to the second player, pitting him against
+			 *  the 3rd to the nth and so on and so forth until we reach the last
+			 *  player who we know has already played everyone else
+			 */
+			for(; i < size-1;i++) {
+				j = i + 1;
+				player1 = players[i];
+
+				for(; j < size; j++) {
+					player2 = players[j];
+					battle(player1, player2);
+					if(player1.wins > maxwins) {
+						maxwins = player1.wins;
+					}
+					else if(player2.wins > maxwins) {
+						maxwins = player2.wins;
+					}
+				}
+			}
+
+			i = 0;
+
+			for(;i < size;i++) {
+				player1 = players[i];
+				if(player1.wins > maxwins) {
+					maxwins = player1.wins;
+					winner = player1;
+				}
+			}
+
+			sort(players,0,size-1);
+
+			reverse_array(playerList);
+
+			System.out.println("The winner of the Round Robin stage is: "
+					+ playerList[0].name + "!");
+
+			System.out.println("And we have a winner! " 
+					+ runPlayoffs(playerList).name 
+					+ " is the 2019 world champion!");
+
+		}
+	}
+
+	/* Merge and sort are from geeksforgeeks.com */
+	private void merge(Person arr[], int l, int m, int r) 
+	{ 
+		// Find sizes of two subarrays to be merged 
+		int n1 = m - l + 1; 
+		int n2 = r - m; 
+
+		/* Create temp arrays */
+		Person L[] = new Person [n1]; 
+		Person R[] = new Person [n2]; 
+
+		/*Copy data to temp arrays*/
+		for (int i=0; i<n1; ++i) 
+			L[i] = arr[l + i]; 
+		for (int j=0; j<n2; ++j) 
+			R[j] = arr[m + 1+ j]; 
+
+
+		/* Merge the temp arrays */
+
+		// Initial indexes of first and second subarrays 
+		int i = 0, j = 0; 
+
+		// Initial index of merged subarry array 
+		int k = l; 
+		while (i < n1 && j < n2) 
+		{ 
+			if (L[i].wins <= R[j].wins) 
+			{ 
+				arr[k] = L[i]; 
+				i++; 
+			} 
+			else
+			{ 
+				arr[k] = R[j]; 
+				j++; 
+			} 
+			k++; 
+		} 
+
+		/* Copy remaining elements of L[] if any */
+		while (i < n1) 
+		{ 
+			arr[k] = L[i]; 
+			i++; 
+			k++; 
+		} 
+
+		/* Copy remaining elements of R[] if any */
+		while (j < n2) 
+		{ 
+			arr[k] = R[j]; 
+			j++; 
+			k++; 
+		} 
+	} 
+
+	// Main function that sorts arr[l..r] using 
+	// merge() 
+	private void sort(Person arr[], int l, int r) 
+	{ 
+		if (l < r) 
+		{ 
+			// Find the middle point 
+			int m = (l+r)/2; 
+
+			// Sort first and second halves 
+			sort(arr, l, m); 
+			sort(arr , m+1, r); 
+
+			// Merge the sorted halves 
+			merge(arr, l, m, r);
+		} 
+	}
+
+	/* This will reverse the array we give it, only because I did not want
+	 * to change the sorting algorithm
+	 */
+	private void reverse_array(Person[] arr) {
+		int size = arr.length;
+		Person[] temp = new Person[size];
+		Person temp2 = null;
+
+		// Here we look for ties and deal with them as we need
+		for(int i = 0;i < size - 1; i++) {
+			if(arr[i].wins == arr[i + 1].wins) {
+				// This only matters if the second person wins the tiebreaker
+				if(this.tiebreaker(arr[i], arr[i+1]) == -1) {
+					temp2 = arr[i];
+					arr[i] = arr[i + 1];
+					arr[i+1] = temp2;
+				}
+			}
+		}
+
+		// This reverses the positions of the elements in the array of players 
+		for(int i = 0;i < size; i++) {
+			temp[i] = arr[size-i-1];
+		}
+		for(int i = 0;i < size; i++) {
+			arr[i] = temp[i];
+		}
+	}
+
+	/* This method will give us a winner after seeding and battling our 8
+	 * playoffs contenders
+	 */
+	private Person runPlayoffs(Person[] arr) {
+		Person[] playoffs = new Person[8];
+		Person[] semis = new Person[4];
+		Person[] finals = new Person[2];
+		Person winner = null, tempPerson1, tempPerson2;
+		int i = 0, j = 0;
+
+		// Copy the first 8 players to our new array and set their wins to 0
+		for(;i < 8; i++) {
+			playoffs[i] = arr[i];
+			playoffs[i].wins = 0;
+		}
+		// This doesn't account for a 3-1, it will still calculate the fifth
+		// battle
+		// Maybe I should put playoffs[i] into a variable so i don't look it up
+		// too many times
+		for(i = 0;i < 4;i+=1) {
+			
+			tempPerson1 = playoffs[2 * i];
+			tempPerson2 = playoffs[(2 * i) + 1];
+			
+			for(j = 0; j < 5 && tempPerson1.wins < 3 
+					&& tempPerson2.wins < 3;j++) {				
+				
+				int temp = tiebreaker(tempPerson1,tempPerson2);			
+				
+				if(temp == 1) 
+					tempPerson1.wins++;
+				
+				else if(temp == -1) 
+					tempPerson2.wins++;
+			}
+			
+			if(tempPerson1.wins > tempPerson2.wins)
+				semis[i] = tempPerson1;
+			
+			else
+				semis[i] = tempPerson2;
+		}
+		
+		for(i = 0; i < 2;i++) {
+			
+			tempPerson1 = playoffs[2*i];
+			tempPerson2 = playoffs[(2*i) + 1];
+			
+			tempPerson1.wins = 0;
+			tempPerson2.wins = 0;
+			
+			for(j = 0; j < 5 && tempPerson1.wins < 3 
+					&& tempPerson2.wins < 3;j++) {
+				int temp = tiebreaker(tempPerson1,tempPerson2);
+				
+				if(temp == 1) 
+					tempPerson1.wins++;
+				
+				else if(temp == -1) 
+					tempPerson2.wins++;
+			}
+			
+			if(tempPerson1.wins > tempPerson2.wins)
+				finals[i] = tempPerson1;
+			
+			else
+				finals[i] = tempPerson2;
+		}
+		
+		tempPerson1 = finals[0];
+		tempPerson2 = finals[1];
+		
+		tempPerson1.wins = 0;
+		tempPerson2.wins = 0;
+		
+		for(i = 0; i < 5 && tempPerson1.wins < 3 && tempPerson2.wins < 3;i++) {
+			int temp = tiebreaker(tempPerson1,tempPerson2); 
+			
+			if(temp == 1) 
+				winner = tempPerson1; 
+			
+			else winner = tempPerson2;
+		}
+		
+		return winner;
+	}
+}
