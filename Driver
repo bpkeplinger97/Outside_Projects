@@ -1,0 +1,14 @@
+package tournament;
+
+// Small working example of my simulator 
+public class Driver {
+	public static void main(String args[]) {
+		String[] attendees = new String[] {"Brandon","Alex","Karen","Seyi",
+				"Gina","Anna","Jess","Ruzan","Zaesia","Kirito","Alphons",
+				"Blaire"};
+		
+		Tournament tournament = new Tournament(attendees,attendees.length);
+		
+		tournament.runTournament(tournament.playerList);
+	}
+}
